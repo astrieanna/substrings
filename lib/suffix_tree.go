@@ -1,7 +1,7 @@
 package suffix_tree
 
 import(
-"fmt"
+	"fmt"
 	"log"
 	"strings"
 	)
@@ -71,25 +71,31 @@ func (n *node) insert(d DNA, id int) (*node) {
 	return nil
 }
 
-func (n *node) String(depth int) string {
-  var output string;
-  for k := range n.ids {
-  	output += fmt.Sprintf(" %d", k)
+func (n *node) prettyPrint(depth int, max_id int) {
+  none_missing := true
+  for i := 0; i <= max_id; i++ {
+  	if !n.ids[i] {
+  		none_missing = false
+  	}
   }
-  output += "\n"
-  if n.a != nil {
-  	output += strings.Repeat(".", depth) + "A" + n.a.String(depth+1)
-  }
-  if n.c != nil {
-  	output += strings.Repeat(".", depth) + "C" + n.c.String(depth+1)
-  }
-  if n.g != nil {
-  	output += strings.Repeat(".", depth) + "G" + n.g.String(depth+1)
-  }
-  if n.t != nil {
-  	output += strings.Repeat(".", depth) + "T" + n.t.String(depth+1)
-  }
-  return output
+  if none_missing {
+	  if n.a != nil {
+	  	fmt.Println(strings.Repeat(".", depth), "A")
+	  	n.a.prettyPrint(depth+1, max_id)
+	  }
+	  if n.c != nil {
+	  	fmt.Println(strings.Repeat(".", depth), "C")
+	  	n.c.prettyPrint(depth+1, max_id)
+	  }
+	  if n.g != nil {
+	  	fmt.Println(strings.Repeat(".", depth), "G")
+	  	n.g.prettyPrint(depth+1, max_id)
+	  }
+	  if n.t != nil {
+	  	fmt.Println(strings.Repeat(".", depth), "T")
+	  	n.t.prettyPrint(depth+1, max_id)
+	  }
+	}
 }
 
 type Tree struct {
@@ -114,10 +120,8 @@ func (t *Tree) Insert(ds []DNA) {
 }
 
 func (n node) findLongestSubstring(max_id int) (bool, []DNA) {
-	fmt.Println(n.ids[0], n.ids[1])
 	for i := 0; i <= max_id; i++ {
 		if n.ids[i] != true {
-			fmt.Println("nil")
 			return false, nil
 		}
 	}
@@ -145,17 +149,62 @@ func (n node) findLongestSubstring(max_id int) (bool, []DNA) {
 			best_result = append([]DNA{T}, result...)
 		}
 	}
-	fmt.Println(best_result)
 	return true, best_result
 }
 
-func (t *Tree) FindLongestSubstring() []DNA {
-	_, result := t.root.findLongestSubstring(t.next_id - 1)
-	return result
+func (n node) findCommonSubstrings(max_id int) (bool, [][]DNA) {
+	for i := 0; i <= max_id; i++ {
+		if n.ids[i] != true {
+			return false, nil
+		}
+	}
+	var my_results [][]DNA
+	if n.a != nil {
+		flag, their_results :=  n.a.findCommonSubstrings(max_id)
+		if flag {
+			for _, r := range their_results {
+				my_results = append(my_results, append([]DNA{A}, r...))
+			}
+			my_results = append(my_results, []DNA{A})
+		}
+	}
+	if n.c != nil {
+		flag, their_results := n.c.findCommonSubstrings(max_id)
+		if flag {
+			for _, r := range their_results {
+				my_results = append(my_results, append([]DNA{C}, r...))
+			}
+			my_results = append(my_results, []DNA{C})
+		}
+	}
+	if n.g != nil {
+		flag, their_results := n.g.findCommonSubstrings(max_id)
+		if flag {
+			for _, r := range their_results {
+				my_results = append(my_results, append([]DNA{G}, r...))
+			}
+			my_results = append(my_results, []DNA{G})
+		}
+	}
+	if n.t != nil {
+		flag, their_results := n.t.findCommonSubstrings(max_id)
+		if flag {
+			for _, r := range their_results {
+				my_results = append(my_results, append([]DNA{T}, r...))
+			}
+			my_results = append(my_results, []DNA{T})
+		}
+	}
+	return true, my_results
 }
 
-func (t *Tree) String() string {
-	return t.root.String(0)
+func (t *Tree) FindCommonSubstrings() [][]DNA {
+	_, results := t.root.findCommonSubstrings(t.next_id - 1)
+	return results
+}
+
+func (t *Tree) PrettyPrint() {
+	t.root.prettyPrint(0, t.next_id - 1)
 }
 
 
